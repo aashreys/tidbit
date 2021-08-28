@@ -18,63 +18,72 @@
 #include "remote_kb.h"
 #include "bitc_led.h"
 
-#define _FIGMA      0
-#define _ZOOM       1
-#define _MISC       2
-#define _VIA3       3
-#define _VIA4       4
-#define _VIA5       5
+#define _ZOOM         0
+#define _FIGMA        1
+#define _MISC         2
+#define _VIA3         3
+#define _VIA4         4
+#define _SYSTEM       5
 
 int active_layer = _FIGMA;
 int total_layers = 6;
 
+enum macro_keycodes {
+  // ZOOM MACROS
+  ZOOM_TOGGLE_MUTE = SAFE_RANGE,
+  ZOOM_TOGGLE_VIDEO,
+  ZOOM_TOGGLE_SCRSHARE,
+  
+  // FIGMA MACROS
+};
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-  [_FIGMA] = LAYOUT(
-                  KC_F1,    KC_F2,    KC_F3,      \
-  TO(_FIGMA),     KC_8,     KC_9,     KC_PSLS,    \
-  KC_4,           KC_5,     KC_6,     KC_PAST,    \
-  KC_1,           KC_2,     KC_3,     KC_PMNS,    \
-  KC_0,           KC_DOT,   KC_ENT,   KC_PPLS     \
+  [_ZOOM] = LAYOUT(
+                  ZOOM_TOGGLE_MUTE,     ZOOM_TOGGLE_VIDEO,    ZOOM_TOGGLE_SCRSHARE,       \
+  TO(_ZOOM),      KC_NO,                KC_NO,                KC_NO,                      \
+  KC_NO,          KC_NO,                KC_NO,                KC_NO,                      \
+  KC_NO,          KC_NO,                KC_NO,                KC_NO,                      \
+  KC_NO,          KC_NO,                KC_NO,                KC_NO                       \
   ),
 
-  [_ZOOM] = LAYOUT(
-           KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS  \
+  [_FIGMA] = LAYOUT(
+           KC_NO, KC_NO, KC_NO, \
+  KC_TRNS, KC_NO, KC_NO, KC_NO, \
+  KC_NO, KC_NO, KC_NO, KC_NO, \
+  KC_NO, KC_NO, KC_NO, KC_NO, \
+  KC_NO, KC_NO, KC_NO, KC_NO  \
   ),
 
   [_MISC] = LAYOUT(
-           KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS  \
+           KC_NO, KC_NO, KC_NO, \
+  KC_TRNS, KC_NO, KC_NO, KC_NO, \
+  KC_NO, KC_NO, KC_NO, KC_NO, \
+  KC_NO, KC_NO, KC_NO, KC_NO, \
+  KC_NO, KC_NO, KC_NO, KC_NO  \
   ),
 
   [_VIA3] = LAYOUT(
-           KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS  \
+           KC_NO, KC_NO, KC_NO, \
+  KC_TRNS, KC_NO, KC_NO, KC_NO, \
+  KC_NO, KC_NO, KC_NO, KC_NO, \
+  KC_NO, KC_NO, KC_NO, KC_NO, \
+  KC_NO, KC_NO, KC_NO, KC_NO  \
   ),
 
   [_VIA4] = LAYOUT(
-           KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS  \
+           KC_NO, KC_NO, KC_NO, \
+  KC_TRNS, KC_NO, KC_NO, KC_NO, \
+  KC_NO, KC_NO, KC_NO, KC_NO, \
+  KC_NO, KC_NO, KC_NO, KC_NO, \
+  KC_NO, KC_NO, KC_NO, KC_NO  \
   ),
 
-  [_VIA5] = LAYOUT(
-           KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, \
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS  \
+  [_SYSTEM] = LAYOUT(
+           KC_NO, KC_NO, KC_NO, \
+  KC_TRNS, KC_NO, KC_NO, KC_NO, \
+  KC_NO, KC_NO, KC_NO, KC_NO, \
+  KC_NO, KC_NO, KC_NO, KC_NO, \
+  KC_NO, KC_NO, KC_NO, KC_NO  \
   ),
 };
 
@@ -99,24 +108,24 @@ void oled_task_user(void) {
         case _VIA4:
             oled_write_P(PSTR("VIA 4\n"), false);
             break;
-        case _VIA5:
-            oled_write_P(PSTR("VIA 5\n"), false);
+        case _SYSTEM:
+            oled_write_P(PSTR("SYS\n"), false);
             break;
         default:
             // Or use the write_ln shortcut over adding '\n' to the end of your string
             oled_write_ln_P(PSTR("Undefined"), false);
     }
-
-    // Host Keyboard LED Status
-    led_t led_state = host_keyboard_led_state();
-    oled_write_P(led_state.num_lock ? PSTR("NUM ") : PSTR("    "), false);
-    oled_write_P(led_state.caps_lock ? PSTR("CAP ") : PSTR("    "), false);
-    oled_write_P(led_state.scroll_lock ? PSTR("SCR ") : PSTR("    "), false);
 }
 #endif
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  process_record_remote_kb(keycode, record);
+  switch (keycode) {
+    case ZOOM_TOGGLE_MUTE: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSHIFT) "A"); clear_keyboard(); break;
+    case ZOOM_TOGGLE_VIDEO: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSHIFT) "V"); clear_keyboard(); break;
+    case ZOOM_TOGGLE_SCRSHARE: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSHIFT) "S"); clear_keyboard(); break;
+
+    default: process_record_remote_kb(keycode, record);
+  }
   return true;
 }
 
