@@ -13,14 +13,16 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     return process_record_user(keycode, record);
 }
 
-void suspend_power_down_user(void) {
+void suspend_power_down_kb(void) {
     #ifdef RGBLIGHT_SLEEP
-        rgblight_disable_noeeprom();
+    rgblight_disable_noeeprom();
     #endif
+    suspend_power_down_user();
 }
 
-void suspend_wakeup_init_user(void) {
+void suspend_wakeup_init_kb(void) {
     #ifdef RGBLIGHT_SLEEP
-        rgblight_enable_noeeprom();
+    rgblight_enable_noeeprom();
     #endif
+    suspend_wakeup_init_user();
 }
