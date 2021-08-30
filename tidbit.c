@@ -12,3 +12,15 @@ void matrix_scan_kb(void) {
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     return process_record_user(keycode, record);
 }
+
+void suspend_power_down_user(void) {
+    #ifdef RGBLIGHT_SLEEP
+        rgblight_disable_noeeprom();
+    #endif
+}
+
+void suspend_wakeup_init_user(void) {
+    #ifdef RGBLIGHT_SLEEP
+        rgblight_enable_noeeprom();
+    #endif
+}

@@ -28,6 +28,7 @@
 #define RGB_DI_PIN B6
 #define RGBLED_NUM 8
 #define RGBLIGHT_ANIMATIONS
+#define RGBLIGHT_SLEEP
 
 /* Additional optional encoder pins */
 
