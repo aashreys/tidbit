@@ -25,39 +25,49 @@
 #define _VIA4         4
 #define _SYSTEM       5
 
-int active_layer = _FIGMA;
+int active_layer = 0;
 int total_layers = 6;
 
 enum macro_keycodes {
-  // ZOOM MACROS
+  // ZOOM
   ZOOM_TOGGLE_MUTE = SAFE_RANGE,
   ZOOM_TOGGLE_VIDEO,
   ZOOM_TOGGLE_SCRSHARE,
+  ZOOM_TOGGLE_RAISE_HAND,
   
-  // FIGMA MACROS
+  // FIGMA
+  FIGMA_ALIGNH_LEFT,
+  FIGMA_ALIGNH_CENTER,
+  FIGMA_ALIGNH_RIGHT,
+  FIGMA_ALIGNV_TOP,
+  FIGMA_ALIGNV_CENTER,
+  FIGMA_ALIGNV_BOTTOM,
+  FIGMA_DIST_HORIZONTAL,
+  FIGMA_DIST_VERTICAL,
+
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_ZOOM] = LAYOUT(
-                  ZOOM_TOGGLE_MUTE,     ZOOM_TOGGLE_VIDEO,    ZOOM_TOGGLE_SCRSHARE,       \
-  TO(_ZOOM),      KC_NO,                KC_NO,                KC_NO,                      \
-  KC_NO,          KC_NO,                KC_NO,                KC_NO,                      \
-  KC_NO,          KC_NO,                KC_NO,                KC_NO,                      \
-  KC_NO,          KC_NO,                KC_NO,                KC_NO                       \
+                  ZOOM_TOGGLE_MUTE,     ZOOM_TOGGLE_VIDEO,    ZOOM_TOGGLE_SCRSHARE,      \
+  TO(_ZOOM),      KC_NO,                KC_NO,                KC_NO,                     \
+  TO(_FIGMA),          KC_NO,                KC_NO,                KC_NO,                     \
+  KC_NO,          KC_NO,                KC_NO,                KC_NO,                     \
+  KC_NO,          KC_NO,                KC_NO,                ZOOM_TOGGLE_RAISE_HAND                      \
   ),
 
   [_FIGMA] = LAYOUT(
            KC_NO, KC_NO, KC_NO, \
-  KC_TRNS, KC_NO, KC_NO, KC_NO, \
-  KC_NO, KC_NO, KC_NO, KC_NO, \
-  KC_NO, KC_NO, KC_NO, KC_NO, \
-  KC_NO, KC_NO, KC_NO, KC_NO  \
+  KC_TRNS, FIGMA_ALIGNH_LEFT, FIGMA_ALIGNH_CENTER, FIGMA_ALIGNH_RIGHT, \
+  KC_TRNS, FIGMA_DIST_HORIZONTAL, KC_NO, FIGMA_ALIGNV_TOP, \
+  KC_NO, KC_NO, KC_NO, FIGMA_ALIGNV_CENTER, \
+  KC_NO, KC_NO, FIGMA_DIST_VERTICAL, FIGMA_ALIGNV_BOTTOM  \
   ),
 
   [_MISC] = LAYOUT(
            KC_NO, KC_NO, KC_NO, \
   KC_TRNS, KC_NO, KC_NO, KC_NO, \
-  KC_NO, KC_NO, KC_NO, KC_NO, \
+  KC_TRNS, KC_NO, KC_NO, KC_NO, \
   KC_NO, KC_NO, KC_NO, KC_NO, \
   KC_NO, KC_NO, KC_NO, KC_NO  \
   ),
@@ -65,7 +75,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_VIA3] = LAYOUT(
            KC_NO, KC_NO, KC_NO, \
   KC_TRNS, KC_NO, KC_NO, KC_NO, \
-  KC_NO, KC_NO, KC_NO, KC_NO, \
+  KC_TRNS, KC_NO, KC_NO, KC_NO, \
   KC_NO, KC_NO, KC_NO, KC_NO, \
   KC_NO, KC_NO, KC_NO, KC_NO  \
   ),
@@ -73,7 +83,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_VIA4] = LAYOUT(
            KC_NO, KC_NO, KC_NO, \
   KC_TRNS, KC_NO, KC_NO, KC_NO, \
-  KC_NO, KC_NO, KC_NO, KC_NO, \
+  KC_TRNS, KC_NO, KC_NO, KC_NO, \
   KC_NO, KC_NO, KC_NO, KC_NO, \
   KC_NO, KC_NO, KC_NO, KC_NO  \
   ),
@@ -81,7 +91,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [_SYSTEM] = LAYOUT(
            RGB_TOG, KC_NO, KC_NO, \
   KC_TRNS, KC_NO, KC_NO, KC_NO, \
-  KC_NO, KC_NO, KC_NO, KC_NO, \
+  KC_TRNS, KC_NO, KC_NO, KC_NO, \
   KC_NO, KC_NO, KC_NO, KC_NO, \
   KC_NO, KC_NO, KC_NO, KC_NO  \
   ),
@@ -120,9 +130,21 @@ void oled_task_user(void) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
-    case ZOOM_TOGGLE_MUTE: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSHIFT) "A"); clear_keyboard(); break;
-    case ZOOM_TOGGLE_VIDEO: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSHIFT) "V"); clear_keyboard(); break;
-    case ZOOM_TOGGLE_SCRSHARE: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSHIFT) "S"); clear_keyboard(); break;
+    // ZOOM
+    case ZOOM_TOGGLE_MUTE: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSHIFT) "a"); clear_keyboard(); break;
+    case ZOOM_TOGGLE_VIDEO: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSHIFT) "v"); clear_keyboard(); break;
+    case ZOOM_TOGGLE_SCRSHARE: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSHIFT) "s"); clear_keyboard(); break;
+    case ZOOM_TOGGLE_RAISE_HAND: if (record->event.pressed) SEND_STRING(SS_LALT("y")); break;
+
+    // FIGMA
+    case FIGMA_ALIGNH_LEFT: if (record->event.pressed) SEND_STRING(SS_LALT("a")); break;
+    case FIGMA_ALIGNH_CENTER: if (record->event.pressed) SEND_STRING(SS_LALT("h")); break;
+    case FIGMA_ALIGNH_RIGHT: if (record->event.pressed) SEND_STRING(SS_LALT("d")); break;
+    case FIGMA_ALIGNV_TOP: if (record->event.pressed) SEND_STRING(SS_LALT("w")); break;
+    case FIGMA_ALIGNV_CENTER: if (record->event.pressed) SEND_STRING(SS_LALT("v")); break;
+    case FIGMA_ALIGNV_BOTTOM: if (record->event.pressed) SEND_STRING(SS_LALT("s")); break;
+    case FIGMA_DIST_HORIZONTAL: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LCTRL) SS_DOWN(X_LALT) "h"); clear_keyboard(); break;
+    case FIGMA_DIST_VERTICAL: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LCTRL) SS_DOWN(X_LALT) "v"); clear_keyboard(); break;
 
     default: process_record_remote_kb(keycode, record);
   }
@@ -140,20 +162,18 @@ void matrix_scan_user(void) {
 
 bool encoder_update_user(uint8_t index, bool clockwise) {
   if (index == 0) {
-    int new_layer;
-    if (clockwise) {
-      new_layer = ((active_layer - 1) + total_layers) % total_layers; // reverse rollover
-    } else {
-      new_layer = (active_layer + 1) % total_layers; // rollover
-    }
-    layer_move(new_layer);
+    // Shift
+    layer_move(
+      clockwise ? ((active_layer - 1) + total_layers) % total_layers // reverse rollover
+                : (active_layer + 1) % total_layers // rollover
+    );
   }
 
-  if (index == 1) {
+  if (index == 1 && active_layer == _FIGMA) {
     if (clockwise) {
-      tap_code(KC_VOLU);
+      tap_code(KC_UP);
     } else {
-      tap_code(KC_VOLD);
+      tap_code(KC_DOWN);
     }
   }
 
