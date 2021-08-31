@@ -29,6 +29,9 @@
 #define RGBLED_NUM 8
 #define RGBLIGHT_ANIMATIONS
 
+/* Fix for Tidbit freezing during sleep */
+#define NO_USB_STARTUP_CHECK
+
 /* Additional optional encoder pins */
 
 // You can mix/match pins within the ENCODERS_PAD_A and ENCODERS_PAD_B defines.
