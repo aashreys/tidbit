@@ -81,7 +81,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
 
   [_VIA4] = LAYOUT(
-           KC_NO, KC_NO, KC_NO, \
+           KC_A, KC_B, KC_C, \
   KC_TRNS, KC_NO, KC_NO, KC_NO, \
   KC_TRNS, KC_NO, KC_NO, KC_NO, \
   KC_NO, KC_NO, KC_NO, KC_NO, \
@@ -89,11 +89,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
 
   [_SYSTEM] = LAYOUT(
-           RGB_TOG, KC_NO, KC_NO, \
+           KC_D, KC_E, KC_F, \
   KC_TRNS, KC_NO, KC_NO, KC_NO, \
   KC_TRNS, KC_NO, KC_NO, KC_NO, \
   KC_NO, KC_NO, KC_NO, KC_NO, \
-  KC_NO, KC_NO, KC_NO, KC_NO  \
+  RGB_TOG, KC_NO, KC_NO, KC_NO  \
   ),
 };
 
