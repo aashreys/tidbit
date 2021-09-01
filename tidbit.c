@@ -1,6 +1,4 @@
 #include QMK_KEYBOARD_H
-#include "print.h"
-#include "stdio.h"
 
 void matrix_init_kb(void) {
     led_init_ports();

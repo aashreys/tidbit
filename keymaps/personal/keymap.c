@@ -17,7 +17,17 @@
 #include QMK_KEYBOARD_H
 #include "remote_kb.h"
 #include "bitc_led.h"
+// #include "print.h"
+// #include "stdio.h"
 
+// RBG Timeout Variables
+static void refresh_rgb(void);
+static void check_rgb_timeout(void);
+bool is_user_rgb_enabled;
+bool is_rgb_timeout = false;
+static uint16_t key_timer;
+
+// Custom Layers and Macros
 #define _ZOOM         0
 #define _FIGMA        1
 #define _MISC         2
@@ -45,6 +55,8 @@ enum macro_keycodes {
   FIGMA_DIST_HORIZONTAL,
   FIGMA_DIST_VERTICAL,
 
+  // SYSTEM
+  SYS_TOGGLE_RGB
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -93,7 +105,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   KC_TRNS, KC_NO, KC_NO, KC_NO, \
   KC_TRNS, KC_NO, KC_NO, KC_NO, \
   KC_NO, KC_NO, KC_NO, KC_NO, \
-  RGB_TOG, KC_NO, KC_NO, KC_NO  \
+  SYS_TOGGLE_RGB, KC_NO, KC_NO, KC_NO  \
   ),
 };
 
@@ -128,7 +140,16 @@ void oled_task_user(void) {
 }
 #endif
 
+void keyboard_post_init_user(void) {
+  is_user_rgb_enabled = rgblight_is_enabled();
+  // uprintf("Keyboard init RGB state: %d\n", is_user_rgb_enabled);
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  #ifdef RGBLIGHT_TIMEOUT
+  if (record->event.pressed) refresh_rgb();
+  #endif
+
   switch (keycode) {
     // ZOOM
     case ZOOM_TOGGLE_MUTE: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSHIFT) "a"); clear_keyboard(); break;
@@ -146,6 +167,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case FIGMA_DIST_HORIZONTAL: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LCTRL) SS_DOWN(X_LALT) "h"); clear_keyboard(); break;
     case FIGMA_DIST_VERTICAL: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LCTRL) SS_DOWN(X_LALT) "v"); clear_keyboard(); break;
 
+    case SYS_TOGGLE_RGB: if (record->event.pressed) {
+      rgblight_toggle_noeeprom(); 
+      is_user_rgb_enabled = rgblight_is_enabled();
+      // uprintf("Storing RGB state: %d", is_user_rgb_enabled);
+    } 
+
     default: process_record_remote_kb(keycode, record);
   }
   return true;
@@ -158,6 +185,9 @@ void matrix_init_user(void) {
 
 void matrix_scan_user(void) {
   matrix_scan_remote_kb();
+  #ifdef RGBLIGHT_TIMEOUT
+  check_rgb_timeout();
+  #endif
 }
 
 bool encoder_update_user(uint8_t index, bool clockwise) {
@@ -177,6 +207,7 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
     }
   }
 
+  refresh_rgb();
   return true;
 }
 
@@ -190,4 +221,26 @@ void led_set_kb(uint8_t usb_led) {
 layer_state_t layer_state_set_user(layer_state_t state) {
   active_layer = get_highest_layer(state);
   return state;
+}
+
+void refresh_rgb() {
+  key_timer = timer_read(); // store time of last refresh
+  if (is_rgb_timeout) { // only do something if rgb has timed out
+    print("Activity detected, removing timeout\n");
+    is_rgb_timeout = false;
+    if (is_user_rgb_enabled) { // only enable rgb if user had it enabled before timing out
+      // print("Enabling RGB after timeout\n");
+      rgblight_enable_noeeprom();
+    } else {
+      // print("Skipping enabling RGB since user had it disabled\n");
+    }
+  }
+}
+
+void check_rgb_timeout() {
+  if (!is_rgb_timeout && timer_elapsed(key_timer) > RGBLIGHT_TIMEOUT) {
+    // print("RGB timed out\n");
+    rgblight_disable_noeeprom();
+    is_rgb_timeout = true;
+  }
 }
