@@ -185,6 +185,9 @@ void matrix_init_user(void) {
 
 void matrix_scan_user(void) {
   matrix_scan_remote_kb();
+}
+
+void housekeeping_task_user(void) {
   #ifdef RGBLIGHT_TIMEOUT
   check_rgb_timeout();
   #endif
@@ -201,9 +204,9 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
 
   if (index == 1 && active_layer == _FIGMA) {
     if (clockwise) {
-      tap_code(KC_UP);
-    } else {
       tap_code(KC_DOWN);
+    } else {
+      tap_code(KC_UP);
     }
   }
 
