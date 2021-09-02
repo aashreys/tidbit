@@ -53,6 +53,7 @@ enum macro_keycodes {
   FIGMA_ALIGNV_BOTTOM,
   FIGMA_DIST_HORIZONTAL,
   FIGMA_DIST_VERTICAL,
+  FIGMA_RUN_LAST_PLUGIN,
 
   // SYSTEM
   SYS_TOGGLE_RGB
@@ -68,7 +69,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
 
   [_FIGMA] = LAYOUT(
-           KC_NO, KC_NO, KC_NO, \
+           FIGMA_RUN_LAST_PLUGIN, KC_NO, KC_NO, \
   KC_TRNS, FIGMA_ALIGNH_LEFT, FIGMA_ALIGNH_CENTER, FIGMA_ALIGNH_RIGHT, \
   KC_TRNS, FIGMA_DIST_HORIZONTAL, KC_NO, FIGMA_ALIGNV_TOP, \
   KC_NO, KC_NO, KC_NO, FIGMA_ALIGNV_CENTER, \
@@ -139,32 +140,31 @@ void oled_task_user(void) {
 #endif
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  #ifdef RGBLIGHT_TIMEOUT
-  if (record->event.pressed) refresh_rgb();
-  #endif
+  process_record_remote_kb(keycode, record);
+  if (record->event.pressed) {
+    switch (keycode) {
+      // ZOOM
+      case ZOOM_TOGGLE_MUTE: SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSHIFT) "a"); clear_keyboard(); break;
+      case ZOOM_TOGGLE_VIDEO: SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSHIFT) "v"); clear_keyboard(); break;
+      case ZOOM_TOGGLE_SCRSHARE: SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSHIFT) "s"); clear_keyboard(); break;
+      case ZOOM_TOGGLE_RAISE_HAND: SEND_STRING(SS_LALT("y")); break;
 
-  switch (keycode) {
-    // ZOOM
-    case ZOOM_TOGGLE_MUTE: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSHIFT) "a"); clear_keyboard(); break;
-    case ZOOM_TOGGLE_VIDEO: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSHIFT) "v"); clear_keyboard(); break;
-    case ZOOM_TOGGLE_SCRSHARE: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSHIFT) "s"); clear_keyboard(); break;
-    case ZOOM_TOGGLE_RAISE_HAND: if (record->event.pressed) SEND_STRING(SS_LALT("y")); break;
+      // FIGMA
+      case FIGMA_ALIGNH_LEFT: SEND_STRING(SS_LALT("a")); break;
+      case FIGMA_ALIGNH_CENTER: SEND_STRING(SS_LALT("h")); break;
+      case FIGMA_ALIGNH_RIGHT: SEND_STRING(SS_LALT("d")); break;
+      case FIGMA_ALIGNV_TOP: SEND_STRING(SS_LALT("w")); break;
+      case FIGMA_ALIGNV_CENTER: SEND_STRING(SS_LALT("v")); break;
+      case FIGMA_ALIGNV_BOTTOM: SEND_STRING(SS_LALT("s")); break;
+      case FIGMA_DIST_HORIZONTAL: SEND_STRING(SS_DOWN(X_LCTRL) SS_DOWN(X_LALT) "h"); clear_keyboard(); break;
+      case FIGMA_DIST_VERTICAL: SEND_STRING(SS_DOWN(X_LCTRL) SS_DOWN(X_LALT) "v"); clear_keyboard(); break;
+      case FIGMA_RUN_LAST_PLUGIN: SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LALT) "p"); clear_keyboard(); break;
 
-    // FIGMA
-    case FIGMA_ALIGNH_LEFT: if (record->event.pressed) SEND_STRING(SS_LALT("a")); break;
-    case FIGMA_ALIGNH_CENTER: if (record->event.pressed) SEND_STRING(SS_LALT("h")); break;
-    case FIGMA_ALIGNH_RIGHT: if (record->event.pressed) SEND_STRING(SS_LALT("d")); break;
-    case FIGMA_ALIGNV_TOP: if (record->event.pressed) SEND_STRING(SS_LALT("w")); break;
-    case FIGMA_ALIGNV_CENTER: if (record->event.pressed) SEND_STRING(SS_LALT("v")); break;
-    case FIGMA_ALIGNV_BOTTOM: if (record->event.pressed) SEND_STRING(SS_LALT("s")); break;
-    case FIGMA_DIST_HORIZONTAL: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LCTRL) SS_DOWN(X_LALT) "h"); clear_keyboard(); break;
-    case FIGMA_DIST_VERTICAL: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LCTRL) SS_DOWN(X_LALT) "v"); clear_keyboard(); break;
+      // SYSTEM
+      case SYS_TOGGLE_RGB: rgblight_toggle(); break;
 
-    case SYS_TOGGLE_RGB: if (record->event.pressed) {
-      rgblight_toggle();
-    } 
-
-    default: process_record_remote_kb(keycode, record);
+      default: break;
+    }
   }
   return true;
 }
@@ -176,12 +176,6 @@ void matrix_init_user(void) {
 
 void matrix_scan_user(void) {
   matrix_scan_remote_kb();
-}
-
-void housekeeping_task_user(void) {
-  #ifdef RGBLIGHT_TIMEOUT
-  check_rgb_timeout();
-  #endif
 }
 
 bool encoder_update_user(uint8_t index, bool clockwise) {
@@ -199,8 +193,6 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
       tap_code(KC_UP);
     }
   }
-
-  refresh_rgb();
   return true;
 }
 
@@ -214,6 +206,24 @@ void led_set_kb(uint8_t usb_led) {
 layer_state_t layer_state_set_user(layer_state_t state) {
   active_layer = get_highest_layer(state);
   return state;
+}
+
+void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
+  #ifdef RGBLIGHT_TIMEOUT
+  if (record->event.pressed) refresh_rgb();
+  #endif
+}
+
+void post_encoder_update_user(uint8_t index, bool clockwise) {
+  #ifdef RGBLIGHT_TIMEOUT
+  refresh_rgb();
+  #endif
+}
+
+void housekeeping_task_user(void) {
+  #ifdef RGBLIGHT_TIMEOUT
+  check_rgb_timeout();
+  #endif
 }
 
 void suspend_power_down_user(void) {
