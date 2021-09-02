@@ -226,12 +226,12 @@ void housekeeping_task_user(void) {
   #endif
 }
 
-void suspend_power_down_user(void) {
-    rgblight_suspend();
+void suspend_wakeup_init_user(void) {
+    refresh_rgb();
 }
 
-void suspend_wakeup_init_user(void) {
-    rgblight_wakeup();
+void suspend_power_down_user(void) {
+    is_rgb_timeout = true;
 }
 
 void refresh_rgb() {
