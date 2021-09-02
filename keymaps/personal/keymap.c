@@ -23,7 +23,6 @@
 // RBG Timeout Variables
 static void refresh_rgb(void);
 static void check_rgb_timeout(void);
-bool is_user_rgb_enabled;
 bool is_rgb_timeout = false;
 static uint16_t key_timer;
 
@@ -134,16 +133,10 @@ void oled_task_user(void) {
             oled_write_P(PSTR("SYS\n"), false);
             break;
         default:
-            // Or use the write_ln shortcut over adding '\n' to the end of your string
             oled_write_ln_P(PSTR("Undefined"), false);
     }
 }
 #endif
-
-void keyboard_post_init_user(void) {
-  is_user_rgb_enabled = rgblight_is_enabled();
-  // uprintf("Keyboard init RGB state: %d\n", is_user_rgb_enabled);
-}
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   #ifdef RGBLIGHT_TIMEOUT
@@ -168,9 +161,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case FIGMA_DIST_VERTICAL: if (record->event.pressed) SEND_STRING(SS_DOWN(X_LCTRL) SS_DOWN(X_LALT) "v"); clear_keyboard(); break;
 
     case SYS_TOGGLE_RGB: if (record->event.pressed) {
-      rgblight_toggle_noeeprom(); 
-      is_user_rgb_enabled = rgblight_is_enabled();
-      // uprintf("Storing RGB state: %d", is_user_rgb_enabled);
+      rgblight_toggle();
     } 
 
     default: process_record_remote_kb(keycode, record);
@@ -195,7 +186,6 @@ void housekeeping_task_user(void) {
 
 bool encoder_update_user(uint8_t index, bool clockwise) {
   if (index == 0) {
-    // Shift
     layer_move(
       clockwise ? ((active_layer - 1) + total_layers) % total_layers // reverse rollover
                 : (active_layer + 1) % total_layers // rollover
@@ -226,24 +216,26 @@ layer_state_t layer_state_set_user(layer_state_t state) {
   return state;
 }
 
+void suspend_power_down_user(void) {
+    rgblight_suspend();
+}
+
+void suspend_wakeup_init_user(void) {
+    rgblight_wakeup();
+}
+
 void refresh_rgb() {
   key_timer = timer_read(); // store time of last refresh
   if (is_rgb_timeout) { // only do something if rgb has timed out
     print("Activity detected, removing timeout\n");
     is_rgb_timeout = false;
-    if (is_user_rgb_enabled) { // only enable rgb if user had it enabled before timing out
-      // print("Enabling RGB after timeout\n");
-      rgblight_enable_noeeprom();
-    } else {
-      // print("Skipping enabling RGB since user had it disabled\n");
-    }
+    rgblight_wakeup();
   }
 }
 
 void check_rgb_timeout() {
   if (!is_rgb_timeout && timer_elapsed(key_timer) > RGBLIGHT_TIMEOUT) {
-    // print("RGB timed out\n");
-    rgblight_disable_noeeprom();
+    rgblight_suspend();
     is_rgb_timeout = true;
   }
 }
