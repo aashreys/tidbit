@@ -17,14 +17,6 @@
 #include QMK_KEYBOARD_H
 #include "remote_kb.h"
 #include "bitc_led.h"
-// #include "print.h"
-// #include "stdio.h"
-
-// RBG Timeout Variables
-static void refresh_rgb(void);
-static void check_rgb_timeout(void);
-bool is_rgb_timeout = false;
-static uint16_t key_timer;
 
 // Custom Layers and Macros
 #define _ZOOM         0
@@ -54,9 +46,6 @@ enum macro_keycodes {
   FIGMA_DIST_HORIZONTAL,
   FIGMA_DIST_VERTICAL,
   FIGMA_RUN_LAST_PLUGIN,
-
-  // SYSTEM
-  SYS_TOGGLE_RGB
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -105,7 +94,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   KC_TRNS, KC_NO, KC_NO, KC_NO, \
   KC_TRNS, KC_NO, KC_NO, KC_NO, \
   KC_NO, KC_NO, KC_NO, KC_NO, \
-  SYS_TOGGLE_RGB, KC_NO, KC_NO, KC_NO  \
+  RGB_TOG, KC_NO, KC_NO, KC_NO  \
   ),
 };
 
@@ -160,9 +149,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       case FIGMA_DIST_VERTICAL: SEND_STRING(SS_DOWN(X_LCTRL) SS_DOWN(X_LALT) "v"); clear_keyboard(); break;
       case FIGMA_RUN_LAST_PLUGIN: SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LALT) "p"); clear_keyboard(); break;
 
-      // SYSTEM
-      case SYS_TOGGLE_RGB: rgblight_toggle(); break;
-
       default: break;
     }
   }
@@ -206,46 +192,4 @@ void led_set_kb(uint8_t usb_led) {
 layer_state_t layer_state_set_user(layer_state_t state) {
   active_layer = get_highest_layer(state);
   return state;
-}
-
-void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
-  #ifdef RGBLIGHT_TIMEOUT
-  if (record->event.pressed) refresh_rgb();
-  #endif
-}
-
-void post_encoder_update_user(uint8_t index, bool clockwise) {
-  #ifdef RGBLIGHT_TIMEOUT
-  refresh_rgb();
-  #endif
-}
-
-void housekeeping_task_user(void) {
-  #ifdef RGBLIGHT_TIMEOUT
-  check_rgb_timeout();
-  #endif
-}
-
-void suspend_wakeup_init_user(void) {
-    refresh_rgb();
-}
-
-void suspend_power_down_user(void) {
-    is_rgb_timeout = true;
-}
-
-void refresh_rgb() {
-  key_timer = timer_read(); // store time of last refresh
-  if (is_rgb_timeout) { // only do something if rgb has timed out
-    print("Activity detected, removing timeout\n");
-    is_rgb_timeout = false;
-    rgblight_wakeup();
-  }
-}
-
-void check_rgb_timeout() {
-  if (!is_rgb_timeout && timer_elapsed(key_timer) > RGBLIGHT_TIMEOUT) {
-    rgblight_suspend();
-    is_rgb_timeout = true;
-  }
 }
